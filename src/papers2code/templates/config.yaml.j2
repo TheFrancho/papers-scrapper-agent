@@ -1,0 +1,26 @@
+dataset:
+  name: {{ dataset.name }}
+  num_classes: {{ dataset.num_classes }}
+  input_size: {{ dataset.input_size }}
+preprocess:
+  normalize:
+    mean: {{ preprocess.normalize.mean }}
+    std: {{ preprocess.normalize.std }}
+  augment:
+    random_crop: {{ preprocess.augment.random_crop }}
+    padding: {{ preprocess.augment.padding }}
+    random_flip: {{ preprocess.augment.random_flip }}
+    cutout: {{ preprocess.augment.cutout }}
+model:
+  family: {{ model.family }}
+  depth: {{ model.depth }}
+  widen_factor: {{ model.widen_factor }}
+  dropout: {{ model.dropout }}
+train:
+  epochs: {{ train.epochs }}
+  batch_size: {{ train.batch_size }}
+  optimizer: {{ train.optimizer }}
+  lr: {{ train.lr }}
+  momentum: {{ train.momentum }}
+  weight_decay: {{ train.weight_decay }}
+  scheduler: {{ train.scheduler }}

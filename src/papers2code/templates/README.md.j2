@@ -1,0 +1,22 @@
+# Paper-to-Code Scaffold
+
+This folder was generated from the papers Methods. It provides a minimal, configurable
+training scaffold (no execution performed by the agent).
+
+## Layout
+- `config.yaml` — parameters parsed from the paper (dataset, preprocessing, model, train)
+- `src/preprocess.py` — torchvision transforms (train/test)
+- `src/model.py` — Wide ResNet skeleton
+- `src/train.py` — simple train/eval loop for CIFAR-10
+- `notebooks/EDA.ipynb` — starter notebook to explore the sampled images
+
+## Quickstart
+```bash
+# create env (optional)
+# conda env create -f environment.yml && conda activate paper2code
+
+# install deps manually (optional)
+# pip install torch torchvision
+
+# run a quick sanity check (downloads CIFAR-10 from torch datasets)
+python -m code.src.train

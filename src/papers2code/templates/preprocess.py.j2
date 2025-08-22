@@ -1,0 +1,18 @@
+from typing import Tuple, List
+import torchvision.transforms as T
+
+def build_transforms() -> Tuple[object, object]:
+    mean: List[float] = {{ preprocess.normalize.mean }}
+    std:  List[float] = {{ preprocess.normalize.std }}
+
+    train = []
+    {% if preprocess.augment.random_crop %}
+    train.append(T.RandomCrop({{ dataset.input_size[1] }}, padding={{ preprocess.augment.padding }}))
+    {% endif %}
+    {% if preprocess.augment.random_flip %}
+    train.append(T.RandomHorizontalFlip())
+    {% endif %}
+    train += [T.ToTensor(), T.Normalize(mean=mean, std=std)]
+
+    test = [T.ToTensor(), T.Normalize(mean=mean, std=std)]
+    return T.Compose(train), T.Compose(test)

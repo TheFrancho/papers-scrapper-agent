@@ -1,0 +1,75 @@
+import os, yaml
+import torch, torch.nn as nn, torch.optim as optim
+from torch.utils.data import DataLoader
+from torchvision.datasets import CIFAR10
+from .preprocess import build_transforms
+from .model import build_model
+
+# Paper citations (training):
+# {% for c in citations[3:7] %}
+# - {{ c.section }}: "{{ c.quote }}"
+# {% endfor %}
+
+def _load_cfg():
+    cfg_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "..", "config.yaml")
+    with open(cfg_path, "r") as f:
+        return yaml.safe_load(f)
+
+def main(data_root: str = "./data"):
+    cfg = _load_cfg()
+    train_tfms, test_tfms = build_transforms()
+
+    train_set = CIFAR10(data_root, train=True,  download=True, transform=train_tfms)
+    test_set  = CIFAR10(data_root, train=False, download=True, transform=test_tfms)
+
+    bs = int(cfg["train"]["batch_size"])
+    train_loader = DataLoader(train_set, batch_size=bs, shuffle=True, num_workers=4, pin_memory=True)
+    test_loader  = DataLoader(test_set,  batch_size=bs, shuffle=False, num_workers=4, pin_memory=True)
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = build_model().to(device)
+    criterion = nn.CrossEntropyLoss()
+
+    opt_name = str(cfg["train"]["optimizer"]).lower()
+    lr = float(cfg["train"]["lr"])
+    wd = float(cfg["train"]["weight_decay"])
+    if opt_name == "sgd":
+        momentum = float(cfg["train"].get("momentum", 0.9))
+        optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum, weight_decay=wd, nesterov=True)
+    elif opt_name in ("adamw","adam"):
+        optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=wd)
+    else:
+        optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=wd)
+
+    epochs = int(cfg["train"]["epochs"])
+    sch_cfg = cfg["train"].get("scheduler", {"type": "cosine"})
+    if isinstance(sch_cfg, dict) and str(sch_cfg.get("type","cosine")).lower() == "step":
+        milestones = [int(x) for x in sch_cfg.get("steps", [60,120,160])]
+        gamma = float(sch_cfg.get("drop_factor", 0.2))
+        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=gamma)
+    else:
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
+
+    for epoch in range(epochs):
+        model.train()
+        for x, y in train_loader:
+            x, y = x.to(device), y.to(device)
+            optimizer.zero_grad()
+            loss = criterion(model(x), y)
+            loss.backward()
+            optimizer.step()
+        scheduler.step()
+
+    # quick test
+    model.eval()
+    correct, total = 0, 0
+    with torch.no_grad():
+        for x, y in test_loader:
+            x, y = x.to(device), y.to(device)
+            pred = model(x).argmax(1)
+            correct += (pred == y).sum().item()
+            total += y.size(0)
+    print(f"Test accuracy: {correct/total:.4f}")
+
+if __name__ == "__main__":
+    main()

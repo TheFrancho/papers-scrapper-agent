@@ -1,0 +1,13 @@
+.PHONY: env train eda clean
+
+env:
+\t@echo "Create env with: conda env create -f environment.yml && conda activate paper2code"
+
+train:
+\tpython -m code.src.train
+
+eda:
+\t@echo "Open notebooks/EDA.ipynb in your Jupyter environment."
+
+clean:
+\trm -rf __pycache__ .pytest_cache
