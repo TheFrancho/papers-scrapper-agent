@@ -8,7 +8,6 @@ version = "0.1.1"
 description = "Turn research papers into runnable code & datasets"
 readme = "README.md"
 requires-python = ">=3.11"
-# dependencies = []
 
 [tool.setuptools]
 include-package-data = true
