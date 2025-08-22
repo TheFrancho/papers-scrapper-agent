@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "papers2code"
+version = "0.1.1"
+description = "Turn research papers into runnable code & datasets"
+readme = "README.md"
+requires-python = ">=3.11"
+# dependencies = []
+
+[tool.setuptools]
+include-package-data = true
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["papers2code*"]
+
+[tool.setuptools.package-data]
+papers2code = [
+  "templates/*.j2",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+select = ["E","F","I","UP","B"]
+ignore = ["E501"]
